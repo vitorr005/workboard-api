@@ -19,11 +19,12 @@ public class Tarefa {
 
     private String titulo;
 
-    private String status;
-
     private LocalDate dataLimite;
 
     @ManyToOne
     @JoinColumn(name = "responsavel_id")
     private Usuario responsavel;
+
+    @Enumerated(EnumType.STRING)
+    private StatusTarefa status;
 }
