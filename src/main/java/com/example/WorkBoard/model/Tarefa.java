@@ -28,3 +28,4 @@ public class Tarefa {
     @Enumerated(EnumType.STRING)
     private StatusTarefa status;
 }
+
