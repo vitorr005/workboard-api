@@ -59,9 +59,7 @@ public class UsuarioController {
             return ResponseEntity.ok(usuarioSalvo);
         }).orElse(ResponseEntity.notFound().build());
 
+
     }
-
-
-
 
 }

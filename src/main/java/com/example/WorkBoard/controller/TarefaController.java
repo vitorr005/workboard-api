@@ -1,4 +1,5 @@
 package com.example.WorkBoard.controller;
+import com.example.WorkBoard.model.StatusTarefa;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -6,6 +7,7 @@ import com.example.WorkBoard.model.Tarefa;
 import com.example.WorkBoard.repository.TarefaRepository;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -59,6 +61,17 @@ public class TarefaController {
             return ResponseEntity.ok(tarefaSalva);
 
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/usuario/{id}")
+    public List<Tarefa> listarPorUsuario(@PathVariable Long id) {
+        return tarefaRepository.findByResponsavelId(id);
+    }
+
+    @GetMapping("/atrasadas")
+    public List<Tarefa> listarAtrasadas(){
+        return tarefaRepository.findByDataLimiteBeforeAndStatusNot(LocalDate.now(),
+                StatusTarefa.CONCLUIDA);
     }
 
 }
