@@ -22,7 +22,9 @@ public class Usuario {
 
     private String senha;
 
-    private String tipo;
+    @Enumerated(EnumType.STRING)
+    private TipoUsuario tipo;
+
 
 
 }

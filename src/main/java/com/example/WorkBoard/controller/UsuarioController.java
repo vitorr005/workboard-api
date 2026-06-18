@@ -1,5 +1,6 @@
 package com.example.WorkBoard.controller;
 
+import com.example.WorkBoard.model.TipoUsuario;
 import com.example.WorkBoard.model.Usuario;
 import com.example.WorkBoard.repository.UsuarioRepository;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +61,11 @@ public class UsuarioController {
         }).orElse(ResponseEntity.notFound().build());
 
 
+    }
+
+    @GetMapping("/tipo/{tipo}")
+    public List<Usuario> listarPorTipo(@PathVariable TipoUsuario tipo){
+        return usuarioRepository.findByTipo(tipo);
     }
 
 }
