@@ -1,5 +1,6 @@
 package com.example.WorkBoard.controller;
 
+import com.example.WorkBoard.dto.LoginRequest;
 import com.example.WorkBoard.model.TipoUsuario;
 import com.example.WorkBoard.model.Usuario;
 import com.example.WorkBoard.repository.UsuarioRepository;
@@ -7,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping ({"/usuario"})
@@ -67,5 +69,31 @@ public class UsuarioController {
     public List<Usuario> listarPorTipo(@PathVariable TipoUsuario tipo){
         return usuarioRepository.findByTipo(tipo);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<Usuario> validarUsuario(@RequestBody LoginRequest loginRequest){
+
+        Optional<Usuario> usuarioOptional = usuarioRepository.findByEmail(loginRequest.getEmail());
+
+       if (usuarioOptional.isEmpty()){
+           return ResponseEntity.notFound().build();
+       }
+
+       Usuario usuario = usuarioOptional.get();
+
+       if (!usuario.getSenha().equals(loginRequest.getSenha())){
+           return ResponseEntity.status(401).build();
+       }
+
+       return ResponseEntity.ok(usuario);
+    }
+
+
+
+
+
+
+
+
 
 }

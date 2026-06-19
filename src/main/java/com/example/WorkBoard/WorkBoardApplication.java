@@ -10,4 +10,5 @@ public class WorkBoardApplication {
 		SpringApplication.run(WorkBoardApplication.class, args);
 	}
 
+
 }
