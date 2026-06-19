@@ -13,4 +13,6 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
     List<Tarefa> findByDataLimiteBeforeAndStatusNot(LocalDate data, StatusTarefa status);
 
+    List<Tarefa> findByStatus(StatusTarefa status);
+
 }

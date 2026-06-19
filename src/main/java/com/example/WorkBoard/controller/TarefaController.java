@@ -1,7 +1,5 @@
 package com.example.WorkBoard.controller;
 import com.example.WorkBoard.model.StatusTarefa;
-import com.example.WorkBoard.model.TipoUsuario;
-import com.example.WorkBoard.model.Usuario;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -74,6 +72,11 @@ public class TarefaController {
     public List<Tarefa> listarAtrasadas(){
         return tarefaRepository.findByDataLimiteBeforeAndStatusNot(LocalDate.now(),
                 StatusTarefa.CONCLUIDA);
+    }
+
+    @GetMapping("/status/{status}")
+    public List<Tarefa> listarPorStatus(@PathVariable StatusTarefa status){
+        return tarefaRepository.findByStatus(status);
     }
 
 
