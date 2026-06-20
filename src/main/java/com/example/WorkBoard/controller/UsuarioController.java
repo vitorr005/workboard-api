@@ -1,10 +1,12 @@
 package com.example.WorkBoard.controller;
 
 import com.example.WorkBoard.dto.LoginRequest;
+import com.example.WorkBoard.dto.UsuarioResponse;
 import com.example.WorkBoard.model.TipoUsuario;
 import com.example.WorkBoard.model.Usuario;
 import com.example.WorkBoard.repository.UsuarioRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,19 +17,33 @@ import java.util.Optional;
 public class UsuarioController {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
-    public UsuarioController(UsuarioRepository usuarioRepository) {
+    public UsuarioController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
-    public List<Usuario> listarUsuario(){
-        return usuarioRepository.findAll();
+    public List<UsuarioResponse> listarUsuario(){
+        return usuarioRepository.findAll()
+                .stream()
+                .map(usuario -> new UsuarioResponse(
+                        usuario.getId(),
+                        usuario.getNome(),
+                        usuario.getEmail(),
+                        usuario.getTipo()
+                ))
+                .toList();
     }
 
     @PostMapping
     public Usuario criarUsuario(@RequestBody Usuario usuario){
+
+        String senhaCriptografada = passwordEncoder.encode(usuario.getSenha());
+        usuario.setSenha(senhaCriptografada);
+
         return usuarioRepository.save(usuario);
     }
 
@@ -71,7 +87,7 @@ public class UsuarioController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Usuario> validarUsuario(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<UsuarioResponse> validarUsuario(@RequestBody LoginRequest loginRequest){
 
         Optional<Usuario> usuarioOptional = usuarioRepository.findByEmail(loginRequest.getEmail());
 
@@ -81,11 +97,18 @@ public class UsuarioController {
 
        Usuario usuario = usuarioOptional.get();
 
-       if (!usuario.getSenha().equals(loginRequest.getSenha())){
+       if (!passwordEncoder.matches(loginRequest.getSenha(), usuario.getSenha())){
            return ResponseEntity.status(401).build();
        }
 
-       return ResponseEntity.ok(usuario);
+       UsuarioResponse usuarioResponse = new UsuarioResponse(
+               usuario.getId(),
+               usuario.getNome(),
+               usuario.getEmail(),
+               usuario.getTipo()
+       );
+
+       return ResponseEntity.ok(usuarioResponse);
     }
 
 
