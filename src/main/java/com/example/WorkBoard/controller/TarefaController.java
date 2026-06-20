@@ -1,13 +1,12 @@
 package com.example.WorkBoard.controller;
 import com.example.WorkBoard.dto.AtualizarStatusRequest;
-import com.example.WorkBoard.model.HistoricoTarefa;
-import com.example.WorkBoard.model.StatusTarefa;
+import com.example.WorkBoard.dto.CriarTarefaRequest;
+import com.example.WorkBoard.model.*;
 import com.example.WorkBoard.repository.HistoricoTarefaRepository;
-import jakarta.persistence.Id;
+import com.example.WorkBoard.repository.UsuarioRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import com.example.WorkBoard.model.Tarefa;
 import com.example.WorkBoard.repository.TarefaRepository;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,11 +19,13 @@ import java.util.List;
 public class TarefaController {
     private final TarefaRepository tarefaRepository;
     private final HistoricoTarefaRepository historicoTarefaRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public TarefaController(TarefaRepository tarefaRepository,
-                            HistoricoTarefaRepository historicoTarefaRepository) {
+                            HistoricoTarefaRepository historicoTarefaRepository, UsuarioRepository usuarioRepository) {
         this.tarefaRepository = tarefaRepository;
         this.historicoTarefaRepository = historicoTarefaRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
 
@@ -35,8 +36,33 @@ public class TarefaController {
     }
 
     @PostMapping
-    public Tarefa criarTarefa(@RequestBody Tarefa tarefa) {
-        return tarefaRepository.save(tarefa);
+    public ResponseEntity<Tarefa> criarTarefa(@RequestBody CriarTarefaRequest request) {
+
+        Usuario criador = usuarioRepository.findById(request.getCriadorId())
+                .orElse(null);
+
+        if (criador == null){
+            return ResponseEntity.notFound().build();
+        }
+
+        if (criador.getTipo() != TipoUsuario.GESTOR){
+            return ResponseEntity.status(403).build();
+        }
+
+        Usuario responsavel = usuarioRepository.findById(request.getResponsavelId())
+                .orElse(null);
+
+        if(responsavel == null){
+            return ResponseEntity.notFound().build();
+        }
+
+        Tarefa tarefa = new Tarefa();
+        tarefa.setTitulo(request.getTitulo());
+        tarefa.setDataLimite(request.getDataLimite());
+        tarefa.setStatus(request.getStatus());
+        tarefa.setResponsavel(responsavel);
+
+        return ResponseEntity.ok(tarefaRepository.save(tarefa));
     }
 
     @GetMapping("/{id}")
@@ -45,7 +71,21 @@ public class TarefaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarTarefa(@PathVariable Long id){
+    public ResponseEntity<Void> deletarTarefa(@PathVariable Long id,
+                                              @RequestParam Long usuarioId){
+
+
+        Usuario deletar = usuarioRepository.findById(usuarioId)
+                .orElse(null);
+
+        if (deletar == null){
+            return ResponseEntity.notFound().build();
+        }
+
+        if (deletar.getTipo() != TipoUsuario.GESTOR){
+            return ResponseEntity.status(403).build();
+        }
+
 
          if (!tarefaRepository.existsById(id)){
              return ResponseEntity.notFound().build();
@@ -58,10 +98,22 @@ public class TarefaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Tarefa> atualizarTarefa(@PathVariable Long id,
-                                                  @RequestBody Tarefa tarefaAtualizada)
+                                                  @RequestBody Tarefa tarefaAtualizada,
+                                                  @RequestParam Long usuarioId) {
 
-    {
+        Usuario alterar = usuarioRepository.findById(usuarioId)
+                .orElse(null);
+
+        if (alterar == null){
+            return ResponseEntity.notFound().build();
+        }
+
+        if (alterar.getTipo() != TipoUsuario.GESTOR){
+            return ResponseEntity.status(403).build();
+        }
+
         return tarefaRepository.findById(id).map(tarefa -> {
+
 
             tarefa.setTitulo(tarefaAtualizada.getTitulo());
             tarefa.setStatus(tarefaAtualizada.getStatus());
