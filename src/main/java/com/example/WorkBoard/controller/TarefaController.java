@@ -3,6 +3,7 @@ import com.example.WorkBoard.dto.AtualizarStatusRequest;
 import com.example.WorkBoard.model.HistoricoTarefa;
 import com.example.WorkBoard.model.StatusTarefa;
 import com.example.WorkBoard.repository.HistoricoTarefaRepository;
+import jakarta.persistence.Id;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -111,6 +112,12 @@ public class TarefaController {
                     return ResponseEntity.ok(tarefaSalva);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/historico")
+    public List<HistoricoTarefa> listarHistorico (@PathVariable Long id){
+        return historicoTarefaRepository.findByTarefaId(id);
+
     }
 
 
