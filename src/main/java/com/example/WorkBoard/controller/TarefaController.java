@@ -66,8 +66,10 @@ public class TarefaController {
     }
 
     @GetMapping("/{id}")
-    public Tarefa buscarPorId(@PathVariable Long id){
-        return tarefaRepository.findById(id).orElse(null);
+    public ResponseEntity<Tarefa> buscarPorId(@PathVariable Long id){
+        return tarefaRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

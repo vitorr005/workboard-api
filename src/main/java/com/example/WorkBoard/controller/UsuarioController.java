@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping ({"/usuario"})
+@RequestMapping ({"/usuarios"})
 public class UsuarioController {
 
     private final UsuarioRepository usuarioRepository;
@@ -39,17 +39,31 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public Usuario criarUsuario(@RequestBody Usuario usuario){
+    public ResponseEntity<Usuario> criarUsuario(@RequestBody Usuario usuario){
+
+        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
+            return ResponseEntity.status(409).build();
+        }
 
         String senhaCriptografada = passwordEncoder.encode(usuario.getSenha());
         usuario.setSenha(senhaCriptografada);
 
-        return usuarioRepository.save(usuario);
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+        return ResponseEntity.ok(usuarioSalvo);
     }
 
     @GetMapping("/{id}")
-    public Usuario buscarPorId(@PathVariable Long id){
-        return usuarioRepository.findById(id).orElse(null);
+    public ResponseEntity<UsuarioResponse> buscarPorId(@PathVariable Long id){
+        return usuarioRepository.findById(id)
+                .map(usuario -> new UsuarioResponse(
+                        usuario.getId(),
+                        usuario.getNome(),
+                        usuario.getEmail(),
+                        usuario.getTipo()
+                        )
+                ).map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
