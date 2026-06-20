@@ -1,4 +1,5 @@
 package com.example.WorkBoard.controller;
+import com.example.WorkBoard.dto.AtualizarStatusRequest;
 import com.example.WorkBoard.model.StatusTarefa;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,6 +78,20 @@ public class TarefaController {
     @GetMapping("/status/{status}")
     public List<Tarefa> listarPorStatus(@PathVariable StatusTarefa status){
         return tarefaRepository.findByStatus(status);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Tarefa> atualizarStatus(
+            @PathVariable Long id,
+            @RequestBody AtualizarStatusRequest request) {
+
+        return tarefaRepository.findById(id)
+                .map(tarefa -> {
+                    tarefa.setStatus(request.getStatus());
+                    Tarefa tarefaSalva = tarefaRepository.save(tarefa);
+                    return ResponseEntity.ok(tarefaSalva);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
