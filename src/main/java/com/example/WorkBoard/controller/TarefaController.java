@@ -1,6 +1,8 @@
 package com.example.WorkBoard.controller;
 import com.example.WorkBoard.dto.AtualizarStatusRequest;
+import com.example.WorkBoard.model.HistoricoTarefa;
 import com.example.WorkBoard.model.StatusTarefa;
+import com.example.WorkBoard.repository.HistoricoTarefaRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -9,16 +11,22 @@ import com.example.WorkBoard.repository.TarefaRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/tarefas")
 public class TarefaController {
     private final TarefaRepository tarefaRepository;
+    private final HistoricoTarefaRepository historicoTarefaRepository;
 
-    public TarefaController(TarefaRepository tarefaRepository) {
+    public TarefaController(TarefaRepository tarefaRepository,
+                            HistoricoTarefaRepository historicoTarefaRepository) {
         this.tarefaRepository = tarefaRepository;
+        this.historicoTarefaRepository = historicoTarefaRepository;
     }
+
+
 
     @GetMapping
     public List<Tarefa> listarTarefas(){
@@ -87,8 +95,19 @@ public class TarefaController {
 
         return tarefaRepository.findById(id)
                 .map(tarefa -> {
+                    StatusTarefa statusAnterior = tarefa.getStatus();
+
                     tarefa.setStatus(request.getStatus());
+
+                    HistoricoTarefa historico = new HistoricoTarefa();
+                    historico.setTarefa(tarefa);
+                    historico.setStatusAnterior(statusAnterior);
+                    historico.setStatusNovo(request.getStatus());
+                    historico.setDataAlteracao(LocalDateTime.now());
+
                     Tarefa tarefaSalva = tarefaRepository.save(tarefa);
+
+
                     return ResponseEntity.ok(tarefaSalva);
                 })
                 .orElse(ResponseEntity.notFound().build());
