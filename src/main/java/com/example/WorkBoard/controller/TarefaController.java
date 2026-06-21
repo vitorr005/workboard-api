@@ -100,7 +100,7 @@ public class TarefaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Tarefa> atualizarTarefa(@PathVariable Long id,
-                                                  @RequestBody Tarefa tarefaAtualizada,
+                                                  @RequestBody CriarTarefaRequest request,
                                                   @RequestParam Long usuarioId) {
 
         Usuario alterar = usuarioRepository.findById(usuarioId)
@@ -114,12 +114,19 @@ public class TarefaController {
             return ResponseEntity.status(403).build();
         }
 
+        Usuario responsavel = usuarioRepository.findById(request.getResponsavelId())
+                .orElse(null);
+
+        if (responsavel == null){
+            return ResponseEntity.notFound().build();
+        }
+
         return tarefaRepository.findById(id).map(tarefa -> {
 
-
-            tarefa.setTitulo(tarefaAtualizada.getTitulo());
-            tarefa.setStatus(tarefaAtualizada.getStatus());
-            tarefa.setDataLimite(tarefaAtualizada.getDataLimite());
+            tarefa.setTitulo(request.getTitulo());
+            tarefa.setStatus(request.getStatus());
+            tarefa.setDataLimite(request.getDataLimite());
+            tarefa.setResponsavel(responsavel);
 
             Tarefa tarefaSalva = tarefaRepository.save(tarefa);
             return ResponseEntity.ok(tarefaSalva);
@@ -161,6 +168,7 @@ public class TarefaController {
                     historico.setDataAlteracao(LocalDateTime.now());
 
                     Tarefa tarefaSalva = tarefaRepository.save(tarefa);
+                    historicoTarefaRepository.save(historico);
 
 
                     return ResponseEntity.ok(tarefaSalva);
